@@ -36,6 +36,18 @@ input[type="text"]:focus {
 	border-color: #5af;
 }
 
+input[type="submit"], a.submit {
+	border-radius: 5px;
+	border: 1px solid #aaa;
+	background: #333;
+	color: #ddd;
+	padding: 2px 5px;
+}
+
+a.submit {
+	display: inline-block;
+}
+
 h2 {
 	font-size: 1.1em;
 	font-weight: normal;
@@ -59,9 +71,17 @@ h2 {
 		font-weight: bold;
 		font-style: italic;
 		font-size: 1.4em;
-		color: #000;
 		padding: 5px;
 		margin-right: 20px;
+	}
+
+	#title a {
+		color: #000;
+	}
+
+	#title a:hover {
+		text-decoration: none;
+		color: #59f;
 	}
 
 	#follow {
@@ -69,7 +89,7 @@ h2 {
 		float: left;
 	}
 
-	#follow input {
+	#follow input[type="text"] {
 		width: 200px;
 	}
 

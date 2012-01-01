@@ -45,13 +45,6 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	tagString := r.FormValue("tags")
 	tags := strings.Split(tagString, ",")
 
-	// Fetch bookmarks
-	marks, err := bookmarks.ByTags(c, tags)
-	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
-		return
-	}
-
 	// If tag "hidden" is not passed ...
 	showHidden := false
 	for _, tag := range(tags) {
@@ -62,14 +55,21 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 	// ... hide all "hidden" tags
 	if !showHidden {
-		marks = bookmarks.FilterTag(marks, "hidden")
+		tags = append(tags, "-hidden")
 	}
 
-	// Format header for tags
-	category := tagString
-	if category == "" {
-		category = "all"
+	// Fetch bookmarks
+	marks, err := bookmarks.ByTags(c, tags)
+	if err != nil {
+		http.Error(w, err.String(), http.StatusInternalServerError)
+		return
 	}
+
+	if tagString == "" {
+		tagString = "all"
+	}
+	title := fmt.Sprintf("%s tagged with '%s'",
+	                     pluralize("Bookmark", len(marks), true), tagString)
 
 	logoutURL, err := user.LogoutURL(c, r.URL.String())
 	if err != nil {
@@ -80,10 +80,19 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	output(w, "index", map[string]interface{}{
 		"user": u,
 		"logoutURL": logoutURL,
-		"count": len(marks),
-		"category": category,
+		"title": title,
 		"bookmarks": marks,
 	});
+}
+
+func pluralize(text string, count int, prepend bool) string {
+	if count != 1 {
+		text += "s"
+	}
+	if prepend {
+		text = fmt.Sprint(count) + " " + text
+	}
+	return text
 }
 
 func handleFollow(w http.ResponseWriter, r *http.Request) {
@@ -156,11 +165,15 @@ func handleFollow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	title := fmt.Sprintf("Following %s tagged with '%s' and query '%s'",
+	                     pluralize("Bookmark", len(marks), true),
+						 tagString, query)
+
 	output(w, "index", map[string]interface{}{
 		"user": u,
 		"logoutURL": logoutURL,
 		"count": len(marks),
-		"category": fullQuery,
+		"title": title,
 		"query": fullQuery,
 		"bookmarks": marks,
 	});

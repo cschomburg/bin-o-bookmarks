@@ -79,17 +79,28 @@ func (b *Bookmark) Delete(c appengine.Context) (success bool, err os.Error) {
 
 func ByTags(c appengine.Context, tags []string) (bms []Bookmark, err os.Error) {
 	q := datastore.NewQuery("Bookmark").Filter("UserId=", user.Current(c).Id).Order("Title")
+
+	var negTags []string
 	for _, tag := range(tags) {
 		if tag != "" {
-			q.Filter("Tags=", tag)
+			op := tag[0:1]
+			if op == "-" {
+				negTags = append(negTags, tag[1:])
+			} else {
+				q.Filter("Tags=", tag)
+			}
 		}
 	}
+
 	count, err := q.Count(c)
 	if err != nil {
 		return
 	}
 	bms = make([]Bookmark, 0, count)
 	_, err = q.GetAll(c, &bms)
+
+	bms = FilterTags(bms, negTags)
+
 	return bms, err
 }
 
@@ -105,14 +116,31 @@ func Exists(c appengine.Context, b Bookmark) (key *datastore.Key, err os.Error) 
 	return nil, nil
 }
 
-func FilterTag(bms []Bookmark, tag string) []Bookmark {
+func GetTagsWithOperator(tags []string, operator string) []string {
+	var filtered []string
+	for _, tag := range(tags) {
+		if strings.Index(tag, operator) == 0 {
+			tag = tag[len(operator):]
+			filtered = append(filtered, tag)
+		}
+	}
+	return filtered
+}
+
+func FilterTags(bms []Bookmark, tags []string) []Bookmark {
+	if len(tags) == 0 {
+		return bms
+	}
+
 	var filtered []Bookmark
 	for _, b := range bms {
 		found := false
-		for _, btag := range(b.Tags) {
-			if btag == tag {
-				found = true
-				break
+		BTAGS: for _, btag := range(b.Tags) {
+			for _, tag := range(tags) {
+				if btag == tag {
+					found = true
+					break BTAGS
+				}
 			}
 		}
 		if (!found) {
