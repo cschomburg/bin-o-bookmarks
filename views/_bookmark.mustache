@@ -1,0 +1,8 @@
+<li class="bookmark" data-url="{{URL}}" data-title="{{Title}}" data-tags="{{TagList}}" style="background-image: url('{{FaviconURL}}')">
+	<a href="{{URL}}">{{Title}}</a>
+		<div class="tags">
+		[{{#Tags}}
+			<a href="/?tags={{.}}" class="tag">{{.}}</a>
+		{{/Tags}}]
+		</div>
+</li>

@@ -1,0 +1,23 @@
+{{>header}}
+
+<form action="/create" method="post">
+	<input type="text" name="url" placeholder="URL" />
+	<input type="text" name="title" placeholder="Title" />
+	<input type="text" name="tags" placeholder="Tags" />
+	<input type="submit" value="Bookmark!" />
+</form>
+
+<h2>{{count}} Bookmarks for "{{category}}"</h2>
+<div id="bookmarks">
+	<input type="text" id="filter_bookmarks" placeholder="Filter Bookmarks" />
+	<ul>
+	{{#bookmarks}}
+		{{>_bookmark}}
+	{{/bookmarks}}
+	{{^bookmarks}}
+		<li>No bookmarks yet!</li>
+	{{/bookmarks}}
+	</ul>
+</div>
+
+{{>footer}}

@@ -1,0 +1,69 @@
+{{>header}}
+<div id="welcome">
+	<p>
+		<b>Keeping it simple.</b>
+		No sync, no global search, no social sharing - just your personal bookmarks.
+		Create a bookmark with an unique URL, title and a few tags and you're done.
+	</p>
+	<p class="right">
+		<b>Tag-based navigation.</b>
+		Organize your bookmarks by adding multiple tags to them. First and foremost,
+		tags serve as your personal categories. In addition to this, you can use
+		unique tags to make bo'b your personal URL shortener. Special keyword tags
+		provide extra functionality.
+	</p>
+	<p>
+		<b>Follow mode with search support.</b>
+		In the Follow box you can enter one or more tags and if there is only one
+		bookmark found for this combination, it will immediately redirect to the
+		URL. No extra clicks needed!<br />
+		Combine this with a search text and every "%s" in all matched bookmarks
+		will be replaced with your query.
+	</p>
+</div>
+<div id="usage">
+	<h2>Instructions</h2>
+	<ul>
+		<li>Chain multiple tags with a comma (,)</li>
+		<li>"%s" in URLs get replaced with your search terms in Follow mode.</li>
+		<li>
+			Follow mode expects a form of "[multiple,tags] [search terms]"
+			- both parts are optional. For example "blog,coding" lists all bookmarks
+			that have both "blog" and "coding" as tags, and "google some things" would
+			open the bookmarks with tag "google" and format the URL with "some
+			things".
+		</li>
+		<li>Bookmarks tagged with "hidden" are not visible in your main listing.</li>
+		<li>
+			If Follow mode doesn't find any bookmarks with your tag list, it shows
+			all bookmarks tagged as "default"
+		</li>
+	</ul>
+</div>
+<div id="tips">
+	<h2>Tips & Tricks</h2>
+	<ul>
+		<li>
+			Group your favorite websites with a tag like "favorite" or "top" and
+			use this listing as your start page in your browser (/?tags=favorite).
+		</li>
+		<li>
+			Set the follow-URL (/follow?q=%s) as your default search provider
+			in your browser to quickly navigate to all your favorite sites.
+		</li>
+		<li>
+			Use unique tags for bookmarks to quickly navigate to them. Especially
+			useful as your personal small URL shortener.
+		</li>
+		<li>
+			Store all your search engines with a custom tag like "search" and use
+			"%s" instead of the query in the bookmark URL. Now you can get access to
+			all your search engines with "search my custom terms"
+		</li>
+		<li>
+			Tag a single search engine as "default" to use it as a fallback in
+			Follow mode - or multiple ones for a quick listing.
+		</li>
+	</ul>
+</div>
+{{>footer}}

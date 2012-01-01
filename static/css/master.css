@@ -1,0 +1,127 @@
+html, body {
+	margin: 0;
+	font-size: 16px;
+	font-family: Helvetica, Arial, sans-serif;
+	color: #333;
+}
+
+body {
+	background: -moz-linear-gradient(top, #fff 0px, #ddd 45px) no-repeat;
+	background: -webkit-linear-gradient(top, #fff 0px, #ddd 45px, #fff 46px) no-repeat;
+	background: -o-linear-gradient(top, #fff 0px, #ddd 45px) no-repeat;
+	background: -ms-linear-gradient(top, #fff 0px, #ddd 45px) no-repeat;
+	background: linear-gradient(top, #fff 0px, #ddd 45px) no-repeat;
+}
+
+#main {
+	width: 960px;
+	margin: 0 auto;
+}
+
+a {
+	color: #dd4400;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+input[type="text"] {
+	border-radius: 5px;
+	border: 1px solid #aaa;
+}
+
+input[type="text"]:focus {
+	border-color: #5af;
+}
+
+h2 {
+	font-size: 1.1em;
+	font-weight: normal;
+	padding-left: 5px;
+	text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+#header {
+	position: relative;
+	padding: 5px 10px;
+	border-bottom: 1px solid #aaa;
+	box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+	color: #333;
+	font-weight: bold;
+	height: 35px;
+	margin-bottom: 20px;
+}
+
+	#title {
+		float: left;
+		font-weight: bold;
+		font-style: italic;
+		font-size: 1.4em;
+		color: #000;
+		padding: 5px;
+		margin-right: 20px;
+	}
+
+	#follow {
+		padding: 5px;
+		float: left;
+	}
+
+	#follow input {
+		width: 200px;
+	}
+
+	#userbox{
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		padding: 5px 10px;
+		text-align: center;
+	}
+
+#bookmarks input {
+	margin-left: 22px;
+	width: 200px;
+}
+#bookmarks ul {
+	padding: 0;
+	margin: 0;
+}
+
+
+#bookmarks li {
+	position: relative;
+	list-style-type: none;
+	width: 960px;
+	border-bottom: 1px dotted #fa6;
+	padding: 2px 2px 2px 20px;
+	background-repeat: no-repeat;
+	background-position: 2px 2px;
+}
+
+#bookmarks li:hover {
+	background-color: #fec;
+}
+
+#bookmarks .tags {
+	font-size: 0.8em;
+	position: absolute;
+	top: 4px;
+	right: 0px;
+}
+
+#welcome p {
+	width: 600px;
+	margin: 30px 0;
+}
+
+#welcome p.right {
+	margin-left: 300px;
+}
+
+#welcome b {
+	font-size: 1.5em;
+	color: #d40;
+}

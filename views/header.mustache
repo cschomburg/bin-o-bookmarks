@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Bin o'Bookmarks</title>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script type="text/javascript" src="/js/main.js"></script>
+	<link rel="stylesheet" href="/css/master.css" />
+</head>
+<body>
+	<div id="main">
+		<div id="header">
+			<div id="title">bin o'bookmarks</div>
+			<div id="follow">
+				<form action="/follow/" method="get">
+					<input type="text" name="q" value="{{query}}" placeholder="Follow ..." />
+					<input type="submit" value="&raquo;" />
+				</form>
+			</div>
+			<div id="userbox">
+				{{#user}}
+				Hey, {{.}}!<br />
+				<a href="{{logoutURL}}">&laquo; Logout &raquo;</a>
+				{{/user}}
+				{{^user}}
+				Hi Friend!<br />
+				<a href="{{loginURL}}">&laquo; Login using Google &raquo;</a>
+				{{/user}}
+			</div>
+		</div>
