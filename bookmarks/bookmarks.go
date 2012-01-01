@@ -14,7 +14,6 @@ type Bookmark struct {
 	URL string
 	Title string
 	Tags []string
-	TimeCreated int64
 	TimeUpdated int64
 }
 
@@ -24,7 +23,7 @@ type Tag struct {
 }
 
 func NewBookmark(u *user.User, url, title string, tags []string) Bookmark {
-	return Bookmark{u.Id, url, title, tags, 0, 0}
+	return Bookmark{u.Id, url, title, tags, 0}
 }
 
 
@@ -37,7 +36,7 @@ func (b Bookmark) FaviconURL() string {
 	return "http://www.google.com/s2/u/0/favicons?domain=" + domain
 }
 
-func (b Bookmark) TagList() string {
+func (b Bookmark) TagString() string {
 	return strings.Join(b.Tags, ",")
 }
 
@@ -52,7 +51,6 @@ func (b *Bookmark) Save(c appengine.Context) (success bool, err os.Error) {
 	}
 	if key == nil {
 		key = datastore.NewIncompleteKey(c, "Bookmark", nil)
-		b.TimeCreated, _, err = os.Time()
 	}
 	b.TimeUpdated, _, err = os.Time()
 	if err != nil {
@@ -77,17 +75,49 @@ func (b *Bookmark) Delete(c appengine.Context) (success bool, err os.Error) {
 	return err != nil, err
 }
 
+func DeleteTag(c appengine.Context, tag string) (err os.Error) {
+	// Fetch bookmarks with this tag
+	q := datastore.NewQuery("Bookmark").Filter("UserId=", user.Current(c).Id).Filter("Tags=", tag)
+	count, err := q.Count(c)
+	if err != nil {
+		return err
+	}
+	var bms []Bookmark
+	keys, err := q.GetAll(c, &bms)
+	if err != nil {
+		return err
+	}
+
+	// Remove tag from bookmark
+	bmsRef := make([]interface{}, count)
+	for i := 0; i < len(bms); i++ {
+		bmsRef[i] = &bms[i]
+		btags := bms[i].Tags
+		for j := 0; j < len(btags); j++ {
+			if btags[j] == tag {
+				bms[i].Tags = append(btags[:j], btags[j+1:]...)
+				break;
+			}
+		}
+	}
+
+	// Put them back on the datastore
+	_, err = datastore.PutMulti(c, keys, bmsRef)
+	return err
+}
+
 func ByTags(c appengine.Context, tags []string) (bms []Bookmark, err os.Error) {
 	q := datastore.NewQuery("Bookmark").Filter("UserId=", user.Current(c).Id).Order("Title")
 
+	// Build query
 	var negTags []string
 	for _, tag := range(tags) {
 		if tag != "" {
 			op := tag[0:1]
-			if op == "-" {
-				negTags = append(negTags, tag[1:])
-			} else {
-				q.Filter("Tags=", tag)
+			switch op {
+			case "-": negTags = append(negTags, tag[1:])
+			case "!": q.Filter("Tags=", tag[1:])
+			default:  q.Filter("Tags=", tag)
 			}
 		}
 	}
@@ -114,17 +144,6 @@ func Exists(c appengine.Context, b Bookmark) (key *datastore.Key, err os.Error) 
 		return keys[0], nil
 	}
 	return nil, nil
-}
-
-func GetTagsWithOperator(tags []string, operator string) []string {
-	var filtered []string
-	for _, tag := range(tags) {
-		if strings.Index(tag, operator) == 0 {
-			tag = tag[len(operator):]
-			filtered = append(filtered, tag)
-		}
-	}
-	return filtered
 }
 
 func FilterTags(bms []Bookmark, tags []string) []Bookmark {

@@ -207,6 +207,20 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 			tags = strings.Split(r.Form["tags"][i], ",")
 		}
 
+		// "!tag" makes this tag unique: the tag will be removed from all other
+		// bookmarks in the datastore
+		for i, tag := range(tags) {
+			if tag == "" {
+				continue;
+			}
+			op := tag[0:1]
+			if op == "!" {
+				tag = tag[1:]
+				tags[i] = tag
+				bookmarks.DeleteTag(c, tag)
+			}
+		}
+
 		bm := bookmarks.NewBookmark(u, url, title, tags)
 		_, err := bm.Save(c)
 		if err != nil {
