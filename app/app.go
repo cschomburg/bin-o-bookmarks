@@ -5,84 +5,17 @@ import (
 	"appengine/user"
 	"bookmarks"
 	"fmt"
-	"html"
 	"http"
 	"mustache"
-	"os"
 	"strings"
 )
 
 func init() {
 	http.HandleFunc("/", handleIndex)
-	http.HandleFunc("/follow/", handleFollow)
-	http.HandleFunc("/f/", handleFollow)
+	http.HandleFunc("/welcome", handleWelcome)
 	http.HandleFunc("/create", handleCreate)
 	http.HandleFunc("/c", handleCreate)
 	http.HandleFunc("/export", handleExport)
-}
-
-func showWelcome(w http.ResponseWriter, r *http.Request, c appengine.Context) {
-	loginURL, err := user.LoginURL(c, r.URL.String())
-	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
-		return
-	}
-	output(w, "welcome", map[string]interface{}{
-		"loginURL": loginURL,
-	});
-}
-
-func handleIndex(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	u := user.Current(c)
-	// Login page
-	if u == nil {
-		showWelcome(w, r, c)
-		return
-	}
-
-	// Get passed tags for filtering
-	tagString := r.FormValue("tags")
-	tags := strings.Split(tagString, ",")
-
-	// If tag "hidden" is not passed ...
-	showHidden := false
-	for _, tag := range(tags) {
-		if tag == "hidden" {
-			showHidden = true
-			break
-		}
-	}
-	// ... hide all "hidden" tags
-	if !showHidden {
-		tags = append(tags, "-hidden")
-	}
-
-	// Fetch bookmarks
-	marks, err := bookmarks.ByTags(c, tags)
-	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
-		return
-	}
-
-	if tagString == "" {
-		tagString = "all"
-	}
-	title := fmt.Sprintf("%s tagged with '%s'",
-	                     pluralize("Bookmark", len(marks), true), tagString)
-
-	logoutURL, err := user.LogoutURL(c, r.URL.String())
-	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
-		return
-	}
-
-	output(w, "index", map[string]interface{}{
-		"user": u,
-		"logoutURL": logoutURL,
-		"title": title,
-		"bookmarks": marks,
-	});
 }
 
 func pluralize(text string, count int, prepend bool) string {
@@ -95,33 +28,50 @@ func pluralize(text string, count int, prepend bool) string {
 	return text
 }
 
-func handleFollow(w http.ResponseWriter, r *http.Request) {
+func handleWelcome(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r);
+	output(c, w, "welcome");
+}
+
+func handleIndex(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	u := user.Current(c)
 	if u == nil {
-		showWelcome(w, r, c)
+		output(c, w, "welcome");
 		return
 	}
 
-	// Extract query information, valid requests are:
-	// /follow/[multiple,tags]/?q=search+string
-	// /follow?q=[multiple,tags]+search+string
-	tagString := ""
+	// Extract query information in form of ?q=multiple,tags+search+string
+	fullQuery := r.FormValue("q")
+	queryParts := strings.SplitN(fullQuery, " ", 2)
+	tagString := queryParts[0]
 	query := ""
-	urlParts := strings.SplitN(r.URL.Path, "/", 3)
-	if len(urlParts) == 3 && urlParts[2] != "" {
-		tagString = urlParts[2]
-		query = r.FormValue("q")
+	if len(queryParts) > 1 {
+		query = queryParts[1]
+	}
+
+	// Get tag array (from tagString or default)
+	var tags []string
+	if tagString == "" && query == "" {
+		tags = []string{"-follow"}
+		fmt.Println("somehow")
 	} else {
-		queryParts := strings.SplitN(r.FormValue("q"), " ", 2)
-		tagString = queryParts[0]
-		if len(queryParts) > 1 {
-			query = queryParts[1]
-		}
+		tags = strings.Split(tagString, ",")
+	}
+
+	// Follow mode or just listing?
+	followMode := true
+	if has, i := bookmarks.ContainsTag(tags, "-follow"); has {
+		followMode = false
+		tags = append(tags[:i], tags[i+1:]...)
+	}
+
+	// If tag "hidden" is not passed, hide all "hidden" tags
+	if has, _ := bookmarks.ContainsTag(tags, "hidden"); !has {
+		tags = append(tags, "-hidden")
 	}
 
 	// Fetch bookmarks with tags
-	tags := strings.Split(tagString, ",")
 	marks, err := bookmarks.ByTags(c, tags)
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
@@ -129,9 +79,9 @@ func handleFollow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If no bookmarks with these tags are found, use "default" tag with query
-	// e.g. for search engine link
+	// as fallback, e.g. for search engine link
 	if len(marks) == 0 {
-		query = tagString + " " + query
+		query = fullQuery
 		tagString = "default"
 		marks, err = bookmarks.ByTags(c, []string{"default"})
 	}
@@ -148,30 +98,27 @@ func handleFollow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Navigate directly if a single bookmark was found
-	if len(marks) == 1 {
+	if followMode && len(marks) == 1 {
 		w.Header().Set("Location", marks[0].URL)
 		w.WriteHeader(http.StatusFound)
 		return
 	}
 
-	fullQuery := tagString
+	// Create title
+	title := pluralize("Bookmark", len(marks), true)
+	if tagString != "" {
+		title += " tagged with '" + tagString + "'"
+	}
 	if query != "" {
-		 fullQuery += " " + query
+		if tagString == "" {
+			title += " with"
+		} else {
+			title += " and"
+		}
+		title += " query '" + query + "'"
 	}
 
-	logoutURL, err := user.LogoutURL(c, r.URL.String())
-	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
-		return
-	}
-
-	title := fmt.Sprintf("Following %s tagged with '%s' and query '%s'",
-	                     pluralize("Bookmark", len(marks), true),
-						 tagString, query)
-
-	output(w, "index", map[string]interface{}{
-		"user": u,
-		"logoutURL": logoutURL,
+	output(c, w, "index", map[string]interface{}{
 		"count": len(marks),
 		"title": title,
 		"query": fullQuery,
@@ -188,9 +135,7 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	if r.Form["url"] == nil {
-		output(w, "create", map[string]interface{}{
-			"user": u,
-		});
+		output(c, w, "create");
 		return
 	}
 
@@ -239,16 +184,13 @@ func handleExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//urlParts := strings.SplitN(r.URL.Path, ".", 2)
-
 	marks, err := bookmarks.ByTags(c, []string{})
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 		return
 	}
 
-	output(w, "export", map[string]interface{}{
-		"user": u,
+	output(c, w, "export", map[string]interface{}{
 		"count": len(marks),
 		"bookmarks": marks,
 	});
@@ -258,10 +200,24 @@ func render(view string, context ...interface{}) string {
 	return mustache.RenderFile("views/" + view + ".mustache", context...)
 }
 
-func output(w http.ResponseWriter, view string, context ...interface{}) {
-	fmt.Fprintln(w, render(view, context...))
-}
+func output(c appengine.Context, w http.ResponseWriter, view string, context ...interface{}) {
+	// Get user info
+	u := user.Current(c)
+	loginURL, err := user.LoginURL(c, appengine.DefaultVersionHostname(c))
+	if err != nil {
+		http.Error(w, err.String(), http.StatusInternalServerError)
+		return
+	}
+	logoutURL, err := user.LogoutURL(c, appengine.DefaultVersionHostname(c))
+	if err != nil {
+		http.Error(w, err.String(), http.StatusInternalServerError)
+		return
+	}
 
-func error(w http.ResponseWriter, err os.Error) {
-	fmt.Fprintln(w, html.EscapeString(err.String()))
+	context = append(context, map[string]interface{}{
+		"user": u,
+		"loginURL": loginURL,
+		"logoutURL": logoutURL,
+	})
+	fmt.Fprintln(w, render(view, context...))
 }

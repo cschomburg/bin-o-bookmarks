@@ -2,7 +2,7 @@
 	<a href="{{URL}}">{{Title}}</a>
 		<div class="tags">
 		[{{#Tags}}
-			<a href="/?tags={{.}}" class="tag">{{.}}</a>
+			<a href="/?q={{.}}" class="tag">{{.}}</a>
 		{{/Tags}}]
 		<a href="javascript:void();" class="edit submit">edit</a>
 		<a href="/delete?url={{EscapedURL}}" class="delete submit">del</a>

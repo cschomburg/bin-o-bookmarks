@@ -162,9 +162,18 @@ func FilterTags(bms []Bookmark, tags []string) []Bookmark {
 				}
 			}
 		}
-		if (!found) {
+		if !found {
 			filtered = append(filtered, b)
 		}
 	}
 	return filtered
+}
+
+func ContainsTag(tags []string, tag string) (has bool, i int) {
+	for i, t := range(tags) {
+		if t == tag {
+			return true, i
+		}
+	}
+	return false, 0
 }
