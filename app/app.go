@@ -16,6 +16,7 @@ func init() {
 	http.HandleFunc("/create", handleCreate)
 	http.HandleFunc("/c", handleCreate)
 	http.HandleFunc("/export", handleExport)
+	http.HandleFunc("/bookmarklet", handleBookmarklet)
 }
 
 func pluralize(text string, count int, prepend bool) string {
@@ -54,7 +55,6 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	var tags []string
 	if tagString == "" && query == "" {
 		tags = []string{"-follow"}
-		fmt.Println("somehow")
 	} else {
 		tags = strings.Split(tagString, ",")
 	}
@@ -122,6 +122,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		"count": len(marks),
 		"title": title,
 		"query": fullQuery,
+		"tagString": tagString,
 		"bookmarks": marks,
 	});
 }
@@ -134,44 +135,20 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	if r.Form["url"] == nil {
+	url := r.FormValue("url")
+	title := r.FormValue("title")
+	tagString := r.FormValue("tagString")
+	if url == "" {
 		output(c, w, "create");
 		return
 	}
 
-	for i, url := range(r.Form["url"]) {
-		title := ""
-		if len(r.Form["title"]) > i {
-			title = r.Form["title"][i]
-		} else {
-			title = url
-		}
-
-		var tags []string
-		if len(r.Form["tags"]) > i {
-			tags = strings.Split(r.Form["tags"][i], ",")
-		}
-
-		// "!tag" makes this tag unique: the tag will be removed from all other
-		// bookmarks in the datastore
-		for i, tag := range(tags) {
-			if tag == "" {
-				continue;
-			}
-			op := tag[0:1]
-			if op == "!" {
-				tag = tag[1:]
-				tags[i] = tag
-				bookmarks.DeleteTag(c, tag)
-			}
-		}
-
-		bm := bookmarks.NewBookmark(u, url, title, tags)
-		_, err := bm.Save(c)
-		if err != nil {
-			http.Error(w, err.String(), http.StatusInternalServerError)
-			return
-		}
+	tags := strings.Split(tagString, ",")
+	bm := bookmarks.NewBookmark(u, url, title, tags)
+	_, err := bm.Save(c)
+	if err != nil {
+		http.Error(w, err.String(), http.StatusInternalServerError)
+		return
 	}
 
 	handleIndex(w, r)
@@ -193,7 +170,34 @@ func handleExport(w http.ResponseWriter, r *http.Request) {
 	output(c, w, "export", map[string]interface{}{
 		"count": len(marks),
 		"bookmarks": marks,
-	});
+	})
+}
+
+func handleBookmarklet(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	u := user.Current(c)
+	if u == nil {
+		output(c, w, "bookmarklet_not_loggedin")
+		return
+	}
+
+	url := r.FormValue("url")
+	title:= r.FormValue("title")
+	tagString := r.FormValue("tags")
+	tags := strings.Split(tagString, ",")
+
+	bm := bookmarks.NewBookmark(u, url, title, tags)
+	_, err := bm.Save(c)
+	if err != nil {
+		http.Error(w, err.String(), http.StatusInternalServerError)
+		return
+	}
+
+	output(c, w, "bookmarklet_save", map[string]interface{}{
+		"url": url,
+		"title": title,
+		"tags": tags,
+	})
 }
 
 func render(view string, context ...interface{}) string {
@@ -203,12 +207,13 @@ func render(view string, context ...interface{}) string {
 func output(c appengine.Context, w http.ResponseWriter, view string, context ...interface{}) {
 	// Get user info
 	u := user.Current(c)
-	loginURL, err := user.LoginURL(c, appengine.DefaultVersionHostname(c))
+	rootURL := "http://" + appengine.DefaultVersionHostname(c);
+	loginURL, err := user.LoginURL(c, rootURL)
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 		return
 	}
-	logoutURL, err := user.LogoutURL(c, appengine.DefaultVersionHostname(c))
+	logoutURL, err := user.LogoutURL(c, rootURL)
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 		return
@@ -218,6 +223,7 @@ func output(c appengine.Context, w http.ResponseWriter, view string, context ...
 		"user": u,
 		"loginURL": loginURL,
 		"logoutURL": logoutURL,
+		"rootURL": rootURL,
 	})
 	fmt.Fprintln(w, render(view, context...))
 }

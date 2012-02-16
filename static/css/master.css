@@ -132,6 +132,28 @@ h2 {
 	right: 0px;
 }
 
+#extras {
+	margin-top: 20px;
+	text-align: center;
+	font-size: 0.9em;
+}
+
+#footer {
+	margin-top: 20px;
+	text-align: center;
+	font-size: 0.8em;
+	color: #555;
+}
+
+#footer a {
+	color: #555;
+	text-decoration: underline;
+}
+
+#footer a:hover {
+	color: #d40;
+}
+
 #welcome p {
 	width: 600px;
 	margin: 30px 0;

@@ -45,16 +45,35 @@ func (b *Bookmark) Save(c appengine.Context) (success bool, err os.Error) {
 		return false, nil
 	}
 
+	if b.Title == "" {
+		b.Title = b.URL
+	}
+
 	key, err := Exists(c, *b)
 	if err != nil {
 		return false, err
 	}
+
 	if key == nil {
 		key = datastore.NewIncompleteKey(c, "Bookmark", nil)
 	}
 	b.TimeUpdated, _, err = os.Time()
 	if err != nil {
 		return false, err
+	}
+
+	// "!tag" makes this tag unique: the tag will be removed from all other
+	// bookmarks in the datastore
+	for i, tag := range(b.Tags) {
+		if tag == "" {
+			continue;
+		}
+		op := tag[0:1]
+		if op == "!" {
+			tag = tag[1:]
+			b.Tags[i] = tag
+			DeleteTag(c, tag)
+		}
 	}
 
 	_, err = datastore.Put(c, key, b)
