@@ -1,3 +1,22 @@
+/*
+	app.go - frontend code for Bin o'Bookmarks
+
+	Copyright (C) 2012  Constantin "xConStruct" Schomburg <me@xconstruct.net>
+
+	Bin o'Bookmarks is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	Bin o'Bookmarks is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package app
 
 import (
@@ -167,6 +186,7 @@ func handleExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: export view
 	output(c, w, "export", map[string]interface{}{
 		"count": len(marks),
 		"bookmarks": marks,
