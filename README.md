@@ -21,7 +21,7 @@ simple extendable API.
 3. Create a [Google App Engine application](https://appengine.google.com/).
 4. Change the `application` value in `app.yaml` to your app name from step 3.
 5. You can run the app locally by running `dev_appserver.py`(see [Getting Started](https://code.google.com/appengine/docs/go/gettingstarted/))
-6. Deploy your app to Google App Engine (see [Uploading Your Application](https://code.google.com/appengine/docs/go/gettingstarted/uploading.html)
+6. Deploy your app to Google App Engine (see [Uploading Your Application](https://code.google.com/appengine/docs/go/gettingstarted/uploading.html))
 
 ## Instructions
 
@@ -31,13 +31,13 @@ simple extendable API.
 * Bookmarks tagged with `hidden` are not visible in your main listing.
 * If Follow mode doesn't find any bookmarks with your tag list, it shows all bookmarks tagged as `default`
 * Prefixing a tag with `-` (negate) hides its bookmarks in listings.
-* Prefix a tag with `!` (unique) while creating a bookmark removes this tag from all other bookmarks.
+* Prefix a tag with `!` (unique) while creating a bookmark to remove this tag from all other bookmarks.
 * Use tag `-follow`to disable automatic redirection if there was only one link found.
 
 ## Tips & Tricks
 
 * Group your favorite websites with a tag like `favorite` or `top` and use this listing as your start page in your browser (`/?q=favorite`).
-* Set the query URL (/?q=%s) as your default search provider in your browser to quickly navigate to all your favorite sites/searches.
+* Set the query URL (`/?q=%s`) as your default search provider in your browser to quickly navigate to all your favorite sites/searches.
 * Implement a tag like `readinglist` and use a bookmarklet to save interesting articles for later reading.
 * Use unique tags for bookmarks to quickly navigate to them. Especially useful as your personal small URL shortener.
 * Cross-device link sharing: Use a bookmarklet to store a website in an unique tag like `!link` and a bookmark on your other device targeting `/?q=link` to quickly open it.
