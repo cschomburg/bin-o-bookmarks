@@ -156,7 +156,7 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	url := r.FormValue("url")
 	title := r.FormValue("title")
-	tagString := r.FormValue("tagString")
+	tagString := r.FormValue("tags")
 	if url == "" {
 		output(c, w, "create");
 		return
