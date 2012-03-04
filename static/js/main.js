@@ -24,4 +24,11 @@ $(function() {
 			$(this).toggle(matches)
 		});
 	});
+
+	$('#bookmarks .bookmark .edit').click(function() {
+		var bookmark = $(this).parents(".bookmark");
+		$('#create .url').val($(bookmark).data('url'));
+		$('#create .title').val($(bookmark).data('title'));
+		$('#create .tags').val($(bookmark).data('tags'));
+	});
 });

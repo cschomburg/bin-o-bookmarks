@@ -55,6 +55,10 @@ func (b Bookmark) FaviconURL() string {
 	return "http://www.google.com/s2/u/0/favicons?domain=" + domain
 }
 
+func (b Bookmark) EscapedURL() string {
+	return url.QueryEscape(b.URL)
+}
+
 func (b Bookmark) TagString() string {
 	return strings.Join(b.Tags, ",")
 }

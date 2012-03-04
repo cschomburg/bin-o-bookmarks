@@ -33,7 +33,7 @@ func init() {
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/welcome", handleWelcome)
 	http.HandleFunc("/create", handleCreate)
-	http.HandleFunc("/c", handleCreate)
+	http.HandleFunc("/delete", handleDelete)
 	http.HandleFunc("/export", handleExport)
 	http.HandleFunc("/bookmarklet", handleBookmarklet)
 }
@@ -170,7 +170,29 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handleIndex(w, r)
+	w.Header().Set("Location", rootURL(c))
+	w.WriteHeader(http.StatusFound)
+	return
+}
+
+func handleDelete(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	u := user.Current(c)
+	if u == nil {
+		return
+	}
+
+	url := r.FormValue("url")
+	bm := bookmarks.NewBookmark(u, url, "", []string{});
+	_, err := bm.Delete(c)
+	if err != nil {
+		http.Error(w, err.String(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Location", rootURL(c))
+	w.WriteHeader(http.StatusFound)
+	return
 }
 
 func handleExport(w http.ResponseWriter, r *http.Request) {
@@ -220,6 +242,10 @@ func handleBookmarklet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func rootURL(c appengine.Context) string {
+	return "http://" + appengine.DefaultVersionHostname(c)
+}
+
 func render(view string, context ...interface{}) string {
 	return mustache.RenderFile("views/" + view + ".mustache", context...)
 }
@@ -227,13 +253,12 @@ func render(view string, context ...interface{}) string {
 func output(c appengine.Context, w http.ResponseWriter, view string, context ...interface{}) {
 	// Get user info
 	u := user.Current(c)
-	rootURL := "http://" + appengine.DefaultVersionHostname(c);
-	loginURL, err := user.LoginURL(c, rootURL)
+	loginURL, err := user.LoginURL(c, rootURL(c))
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 		return
 	}
-	logoutURL, err := user.LogoutURL(c, rootURL)
+	logoutURL, err := user.LogoutURL(c, rootURL(c))
 	if err != nil {
 		http.Error(w, err.String(), http.StatusInternalServerError)
 		return
