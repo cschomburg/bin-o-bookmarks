@@ -268,7 +268,7 @@ func output(c appengine.Context, w http.ResponseWriter, view string, context ...
 		"user": u,
 		"loginURL": loginURL,
 		"logoutURL": logoutURL,
-		"rootURL": rootURL,
+		"rootURL": rootURL(c),
 	})
 	fmt.Fprintln(w, render(view, context...))
 }
